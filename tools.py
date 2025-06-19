@@ -1,20 +1,18 @@
 import json
-from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 from pathlib import Path
+from pydantic import BaseModel
 
 
-@dataclass
-class Change:
-    before: Optional[Dict[str, Any]]
-    after: Optional[Dict[str, Any]]
-    before_sensitive: Optional[Dict[str, bool]]
-    after_sensitive: Optional[Dict[str, bool]]
-    after_unknown: Optional[Dict[str, bool]]
+class Change(BaseModel):
+    before: Optional[Dict[str, Any]] = None
+    after: Optional[Dict[str, Any]] = None
+    before_sensitive: Optional[Dict[str, bool]] = None
+    after_sensitive: Optional[Dict[str, bool]] = None
+    after_unknown: Optional[Dict[str, bool]] = None
 
 
-@dataclass
-class ResourceChange:
+class ResourceChange(BaseModel):
     address: str
     mode: str
     type: str
@@ -46,13 +44,7 @@ def load_plan(path: str) -> List[ResourceChange]:
     for resource_change_data in plan_data.get('resource_changes', []):
         change_data = resource_change_data.get('change', {})
         
-        change = Change(
-            before=change_data.get('before'),
-            after=change_data.get('after'),
-            before_sensitive=change_data.get('before_sensitive'),
-            after_sensitive=change_data.get('after_sensitive'),
-            after_unknown=change_data.get('after_unknown')
-        )
+        change = Change(**change_data)
         
         resource_change = ResourceChange(
             address=resource_change_data.get('address', ''),

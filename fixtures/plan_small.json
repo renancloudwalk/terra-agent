@@ -1,0 +1,55 @@
+{
+  "terraform_version": "1.0.0",
+  "resource_changes": [
+    {
+      "address": "aws_instance.web",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "before": null,
+        "after": {
+          "ami": "ami-12345678",
+          "instance_type": "t2.micro"
+        },
+        "before_sensitive": null,
+        "after_sensitive": {},
+        "after_unknown": {}
+      }
+    },
+    {
+      "address": "aws_security_group.web_sg",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "web_sg",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "before": null,
+        "after": {
+          "name": "web-security-group",
+          "description": "Security group for web server"
+        },
+        "before_sensitive": null,
+        "after_sensitive": {},
+        "after_unknown": {}
+      }
+    },
+    {
+      "address": "aws_s3_bucket.storage",
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "storage",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "before": null,
+        "after": {
+          "bucket": "my-storage-bucket-12345"
+        },
+        "before_sensitive": null,
+        "after_sensitive": {},
+        "after_unknown": {}
+      }
+    }
+  ]
+}

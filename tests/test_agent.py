@@ -51,7 +51,7 @@ def test_agent_scenarios(prompts_data, spec_name):
         
         mock_response_2 = MagicMock()
         mock_response_2.choices = [MagicMock()]
-        mock_response_2.choices[0].message.content = "Summary: 10 changes"
+        mock_response_2.choices[0].message.content = "Summary: 11 changes"
         
         with patch('agent.OpenAI') as mock_openai:
             mock_client = MagicMock()
@@ -94,7 +94,7 @@ def test_score_function():
     """Test the scoring function with known inputs."""
     # Test case 1: Perfect score for small plan
     spec = {
-        "plan": "fixtures/plan_small.json"
+        "plan": "fixtures/plan_small.txt"
     }
     output = "Summary: 3 changes"
     
@@ -103,10 +103,10 @@ def test_score_function():
     
     # Test case 2: Count only scenario
     spec = {
-        "plan": "fixtures/plan_large.json",
+        "plan": "fixtures/plan_large.txt",
         "user_reply": "Count only"
     }
-    output = "Summary: 10 changes"
+    output = "Summary: 11 changes"
     
     test_score = score(output, spec)
-    assert test_score >= 80  # Should get full points
+    assert test_score >= 90  # Should get full points

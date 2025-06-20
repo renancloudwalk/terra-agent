@@ -24,7 +24,7 @@ check-env: ## Check if required environment variables are set
 
 install: ## Install dependencies
 	@echo "$(GREEN)Installing dependencies...$(NC)"
-	uv add mcp openai pydantic pytest
+	uv add mcp openai pydantic pytest pytest-asyncio
 
 test: check-env ## Run all tests
 	@echo "$(GREEN)Running pytest...$(NC)"
@@ -80,9 +80,9 @@ test-mcp-examples: ## Show MCP JSON-RPC examples
 	@echo "$(GREEN)MCP JSON-RPC Examples:$(NC)"
 	uv run python test_mcp_no_deps.py --examples
 
-test-mcp-stdio: check-env ## Test MCP server via stdio (advanced)
-	@echo "$(GREEN)Testing MCP server via stdio...$(NC)"
-	./test_running_server.sh
+test-mcp-stdio: check-env ## Test MCP server integration
+	@echo "$(GREEN)Testing MCP server integration...$(NC)"
+	uv run python test_mcp_integration.py
 
 reward-test: check-env ## Test reward function directly
 	@echo "$(GREEN)Testing reward function...$(NC)"

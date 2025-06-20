@@ -34,17 +34,62 @@ uv add mcp openai pydantic pytest
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
+## Architecture
+
+The terra-agent has **two distinct modes** that share the same core logic:
+
+### 🖥️ CLI Mode
+- **Direct script execution** for testing and development
+- Used by Makefile commands and pytest
+- Processes files directly: `python agent.py fixtures/plan_small.txt`
+
+### 🔌 MCP Server Mode  
+- **Continuous stdio server** for Claude Desktop integration
+- Exposes tools via Model Context Protocol
+- Runs as service: `python mcp_server.py`
+
+```
+┌─────────────────┐    ┌─────────────────┐
+│   CLI Mode      │    │  MCP Server     │
+│                 │    │                 │
+│ make demo       │    │ make mcp-server │
+│ make test       │    │ (stdio server)  │
+│ python agent.py │    │ Claude Desktop  │
+└─────────────────┘    └─────────────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────────────────────────────┐
+│         Same Core Logic                 │
+│   (run_agent_single, run_agent_best_of_n) │
+└─────────────────────────────────────────┘
+```
+
 ## Usage
 
-### MCP Server Mode (Recommended)
+### Quick Testing (CLI Mode)
 
-Run as an MCP server for integration with Claude Desktop or other MCP clients:
+Use the Makefile for easy testing and development:
 
 ```bash
+make help           # Show all commands
+make demo           # Basic agent demo
+make best           # Best-of-N demo
+make test           # Run pytest suite
+make test-single    # Test single response
+make test-multi     # Test Best-of-N selection
+```
+
+### Production Integration (MCP Server Mode)
+
+Run as an MCP server for Claude Desktop integration:
+
+```bash
+make mcp-server     # Start MCP server
+# OR
 python mcp_server.py
 ```
 
-### CLI Mode (Legacy)
+### CLI Mode (Direct Usage)
 
 For direct command-line usage:
 

@@ -78,10 +78,12 @@ def run_agent(plan_path: str) -> str:
 
 
 if __name__ == "__main__":
+    # Support reading from stdin or file
     if len(sys.argv) < 2:
-        print("Usage: python agent.py <plan_file_path>")
-        sys.exit(1)
+        # No argument provided, read from stdin
+        plan_path = "-"
+    else:
+        plan_path = sys.argv[1]
     
-    plan_path = sys.argv[1]
     result = run_agent(plan_path)
     print(result)

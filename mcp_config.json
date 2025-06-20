@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "terraform-agent": {
+      "command": "uv",
+      "args": ["run", "python", "mcp_server.py"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}

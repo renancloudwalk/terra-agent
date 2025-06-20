@@ -1,13 +1,14 @@
-# Terraform Agent
+# Terraform Agent MCP Server
 
-A Python CLI tool that reads Terraform JSON plans and explains them in plain English for non-technical users. Features a versioned Model-Context Protocol (MCP) with structured JSON payloads, multi-turn conversations, and intelligent pruning rules.
+A Model Context Protocol (MCP) server that reads Terraform plan text and explains it in plain English for non-technical users. Features intelligent pruning, multi-turn conversations, and real Atlantis integration.
 
 ## Key Features
 
-- **MCP v1.0 Protocol**: All LLM calls use a single structured JSON payload with versioning
-- **Intelligent Pruning**: Tool output limited to last 10 bullets, history to last 2 turns
+- **True MCP Server**: Implements the Model Context Protocol with stdio transport
+- **Terraform Plan Parser**: Handles real Terraform plan text output (not JSON)
+- **Intelligent Explanations**: Uses structured MCP context with pruning rules
 - **Multi-turn Logic**: Asks "Count only or full summary?" for plans with >5 changes
-- **Complete Test Suite**: Pytest-driven with mocked responses and reward scoring
+- **Atlantis Ready**: Perfect for CI/CD integration with text-based plan output
 
 ## Setup
 
@@ -24,7 +25,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ### Install Dependencies
 
 ```bash
-uv pip install openai pydantic pytest
+uv add mcp openai pydantic pytest
 ```
 
 ### Set OpenAI API Key
@@ -35,16 +36,48 @@ export OPENAI_API_KEY="your-api-key-here"
 
 ## Usage
 
-### Run the Agent
+### MCP Server Mode (Recommended)
+
+Run as an MCP server for integration with Claude Desktop or other MCP clients:
 
 ```bash
-python agent.py fixtures/plan_small.json
+python mcp_server.py
 ```
 
-For plans with more than 5 changes, the agent will ask:
+### CLI Mode (Legacy)
+
+For direct command-line usage:
+
+```bash
+# From file
+python agent.py fixtures/plan_small.txt
+
+# From stdin (Atlantis style)
+terraform plan | python agent.py
 ```
-Count only or full summary?
+
+### MCP Client Integration
+
+Add to your MCP client config (e.g., Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "terraform-agent": {
+      "command": "uv",
+      "args": ["run", "python", "mcp_server.py"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}
 ```
+
+### Available MCP Tools
+
+- **`terraform_explain`**: Parse and explain Terraform plans in plain English
+- **`terraform_parse`**: Parse plans and return structured JSON data
 
 ### Run Tests
 

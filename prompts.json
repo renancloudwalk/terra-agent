@@ -1,10 +1,10 @@
 {
   "small_plan": {
-    "plan": "fixtures/plan_small.json",
+    "plan": "fixtures/plan_small.txt",
     "expected_regex": "^Summary: 3 change"
   },
   "large_plan_count": {
-    "plan": "fixtures/plan_large.json",
+    "plan": "fixtures/plan_large.txt",
     "user_reply": "Count only",
     "expected_regex": "^Summary: \\d+ change"
   }

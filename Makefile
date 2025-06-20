@@ -68,6 +68,22 @@ mcp-server: check-env ## Start MCP server
 	@echo "Press Ctrl+C to stop"
 	python mcp_server.py
 
+test-mcp: check-env ## Show MCP testing methods
+	@echo "$(GREEN)MCP Testing Guide:$(NC)"
+	python test_mcp_no_deps.py
+
+test-mcp-manual: ## Show manual MCP testing instructions
+	@echo "$(GREEN)Manual MCP Testing Instructions:$(NC)"
+	python test_mcp_simple.py --manual-info
+
+test-mcp-examples: ## Show MCP JSON-RPC examples
+	@echo "$(GREEN)MCP JSON-RPC Examples:$(NC)"
+	python test_mcp_no_deps.py --examples
+
+test-mcp-stdio: check-env ## Test MCP server via stdio (advanced)
+	@echo "$(GREEN)Testing MCP server via stdio...$(NC)"
+	python test_mcp_manual.py
+
 reward-test: check-env ## Test reward function directly
 	@echo "$(GREEN)Testing reward function...$(NC)"
 	@python -c "from reward import score; print('Testing reward function:'); print(f'Perfect response: {score(\"Summary: 3 changes\", {\"plan\": \"fixtures/plan_small.txt\"})}/100'); print(f'Bad response: {score(\"Here are some changes...\", {\"plan\": \"fixtures/plan_small.txt\"})}/100')"

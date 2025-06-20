@@ -1,96 +1,87 @@
+import json
 import sys
+from typing import List
 from openai import OpenAI
 from tools import load_plan
 
-
-def get_action_from_change(resource_change):
-    """Determine the action type from the resource change."""
-    change = resource_change.change
-    
-    if change.before is None and change.after is not None:
-        return "create"
-    elif change.before is not None and change.after is None:
-        return "destroy"
-    elif change.before is not None and change.after is not None:
-        return "update"
-    else:
-        return "no-op"
+BOT_PROMPT = "You are a Terraform plan assistant. Explain every change in plain English, as if to someone with zero technical background. If there are more than 5 changes, ask \"Count only or full summary?\""
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python agent.py <plan_file_path>")
-        sys.exit(1)
+def build_context(system: str, tool_output: List[str], history: List[dict], mcp_version="1.0") -> str:
+    """Build MCP context with pruning rules."""
+    # Prune tool_output to last 10 bullets, collapse older into "+N more…"
+    pruned_tool_output = tool_output.copy()
+    if len(pruned_tool_output) > 10:
+        excess_count = len(pruned_tool_output) - 9
+        pruned_tool_output = [f"+{excess_count} more…"] + pruned_tool_output[-9:]
     
-    plan_file_path = sys.argv[1]
+    # Prune history to last 2 turns
+    pruned_history = history[-2:] if len(history) > 2 else history
     
-    try:
-        resource_changes = load_plan(plan_file_path)
-    except FileNotFoundError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error loading plan: {e}")
-        sys.exit(1)
+    ctx = {
+        "mcp_version": mcp_version,
+        "system": system,
+        "tool_output": pruned_tool_output,
+        "history": pruned_history
+    }
+    return json.dumps(ctx)
+
+
+def run_agent(plan_path: str) -> str:
+    """Run the agent with MCP protocol."""
+    # Load and bulletize changes
+    resource_changes = load_plan(plan_path)
+    tool_output = []
+    for change in resource_changes:
+        actions = change.change.actions
+        action = actions[0] if actions else "no-op"
+        tool_output.append(f"- {action} {change.address}")
     
-    # Build the tool message with bullet list of changes
-    tool_message_content = []
-    for resource_change in resource_changes:
-        action = get_action_from_change(resource_change)
-        tool_message_content.append(f"- {action} {resource_change.address}")
+    # First turn: history = []
+    history = []
     
-    tool_message = "\n".join(tool_message_content)
+    # Build context JSON
+    context_json = build_context(BOT_PROMPT, tool_output, history)
     
-    # Initialize messages with system prompt and tool message
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a Terraform plan assistant. If there are more than 5 changes, ask the user 'Count only or full summary?'."
-        },
-        {
-            "role": "user",
-            "content": f"Here are the Terraform plan changes:\n\n{tool_message}"
-        }
-    ]
-    
-    # Initialize OpenAI client
+    # Call OpenAI API
     client = OpenAI()
-    
-    # First API call
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": context_json}],
         temperature=0
     )
     
     assistant_reply = response.choices[0].message.content
-    print(assistant_reply)
     
-    # Check if assistant is asking for count only or full summary
+    # Check if model asks for count only or full summary
     if "Count only or full summary?" in assistant_reply:
-        # Get user input for second turn
-        user_response = input("\nYour response: ").strip()
+        # Read user input
+        user_reply = input().strip()
         
-        # Append messages for second turn
-        messages.append({
-            "role": "assistant",
-            "content": assistant_reply
-        })
-        messages.append({
-            "role": "user",
-            "content": user_response
-        })
+        # Append to history
+        history.append({"role": "user", "content": user_reply})
+        history.append({"role": "assistant", "content": assistant_reply})
+        
+        # Rebuild context with updated history
+        context_json = build_context(BOT_PROMPT, tool_output, history)
         
         # Second API call
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": context_json}],
             temperature=0
         )
         
-        final_reply = response.choices[0].message.content
-        print(final_reply)
+        return response.choices[0].message.content
+    
+    return assistant_reply
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("Usage: python agent.py <plan_file_path>")
+        sys.exit(1)
+    
+    plan_path = sys.argv[1]
+    result = run_agent(plan_path)
+    print(result)

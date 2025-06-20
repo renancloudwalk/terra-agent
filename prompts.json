@@ -1,14 +1,11 @@
 {
   "small_plan": {
     "plan": "fixtures/plan_small.json",
-    "system_message": "You are a Terraform plan assistant. If there are more than 5 changes, ask the user 'Count only or full summary?'.",
-    "user_reply": null,
-    "expectation": "^Summary: 3 change"
+    "expected_regex": "^Summary: 3 change"
   },
   "large_plan_count": {
     "plan": "fixtures/plan_large.json",
-    "system_message": "You are a Terraform plan assistant. If there are more than 5 changes, ask the user 'Count only or full summary?'.",
     "user_reply": "Count only",
-    "expectation": "^Summary: \\d+ change"
+    "expected_regex": "^Summary: \\d+ change"
   }
 }

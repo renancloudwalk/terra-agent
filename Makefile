@@ -38,55 +38,55 @@ demo: check-env ## Run basic agent demo on small plan
 	@echo "$(GREEN)Running basic agent demo...$(NC)"
 	@echo "Testing with fixtures/plan_small.txt (3 changes):"
 	@echo "----------------------------------------"
-	python agent.py fixtures/plan_small.txt
+	uv run python agent.py fixtures/plan_small.txt
 
 demo-large: check-env ## Run agent demo on large plan (interactive)
 	@echo "$(GREEN)Running large plan demo (will ask for Count only or full summary)...$(NC)"
 	@echo "Testing with fixtures/plan_large.txt (10+ changes):"
 	@echo "Type 'Count only' when prompted:"
 	@echo "----------------------------------------"
-	python agent.py fixtures/plan_large.txt
+	uv run python agent.py fixtures/plan_large.txt
 
 demo-best-of-n: check-env ## Run Best-of-N selection demo
 	@echo "$(GREEN)Running Best-of-N selection demo...$(NC)"
-	python demo_best_of_n.py
+	uv run python demo_best_of_n.py
 
 test-best-of-n: check-env ## Run Best-of-N specific tests
 	@echo "$(GREEN)Running Best-of-N tests...$(NC)"
-	python test_best_of_n.py
+	uv run python test_best_of_n.py
 
 test-single: check-env ## Test single response on small plan
 	@echo "$(GREEN)Testing single response (temp=0)...$(NC)"
-	@python -c "from agent import run_agent_single; print(run_agent_single('fixtures/plan_small.txt'))"
+	@uv run python -c "from agent import run_agent_single; print(run_agent_single('fixtures/plan_small.txt'))"
 
 test-multi: check-env ## Test Best-of-N (N=3) on small plan  
 	@echo "$(GREEN)Testing Best-of-N (N=3, temp=0.7)...$(NC)"
-	@python -c "from agent import run_agent_best_of_n; best, score, all_resp = run_agent_best_of_n('fixtures/plan_small.txt', n=3, temperature=0.7); print(f'Best: {best} (Score: {score}/100)')"
+	@uv run python -c "from agent import run_agent_best_of_n; best, score, all_resp = run_agent_best_of_n('fixtures/plan_small.txt', n=3, temperature=0.7); print(f'Best: {best} (Score: {score}/100)')"
 
 mcp-server: check-env ## Start MCP server
 	@echo "$(GREEN)Starting MCP server...$(NC)"
 	@echo "Press Ctrl+C to stop"
-	python mcp_server.py
+	uv run python mcp_server.py
 
 test-mcp: check-env ## Show MCP testing methods
 	@echo "$(GREEN)MCP Testing Guide:$(NC)"
-	python test_mcp_no_deps.py
+	uv run python test_mcp_no_deps.py
 
 test-mcp-manual: ## Show manual MCP testing instructions
 	@echo "$(GREEN)Manual MCP Testing Instructions:$(NC)"
-	python test_mcp_simple.py --manual-info
+	uv run python test_mcp_simple.py --manual-info
 
 test-mcp-examples: ## Show MCP JSON-RPC examples
 	@echo "$(GREEN)MCP JSON-RPC Examples:$(NC)"
-	python test_mcp_no_deps.py --examples
+	uv run python test_mcp_no_deps.py --examples
 
 test-mcp-stdio: check-env ## Test MCP server via stdio (advanced)
 	@echo "$(GREEN)Testing MCP server via stdio...$(NC)"
-	python test_mcp_manual.py
+	./test_running_server.sh
 
 reward-test: check-env ## Test reward function directly
 	@echo "$(GREEN)Testing reward function...$(NC)"
-	@python -c "from reward import score; print('Testing reward function:'); print(f'Perfect response: {score(\"Summary: 3 changes\", {\"plan\": \"fixtures/plan_small.txt\"})}/100'); print(f'Bad response: {score(\"Here are some changes...\", {\"plan\": \"fixtures/plan_small.txt\"})}/100')"
+	@uv run python -c "from reward import score; print('Testing reward function:'); print(f'Perfect response: {score(\"Summary: 3 changes\", {\"plan\": \"fixtures/plan_small.txt\"})}/100'); print(f'Bad response: {score(\"Here are some changes...\", {\"plan\": \"fixtures/plan_small.txt\"})}/100')"
 
 lint: ## Run linting (if available)
 	@echo "$(GREEN)Running linting...$(NC)"
@@ -122,7 +122,7 @@ status: ## Show project status and requirements check
 	@git status --porcelain || echo "Not a git repository"
 	@echo ""
 	@echo "Python version:"
-	@python --version
+	@uv run python --version
 	@echo ""
 	@echo "Environment check:"
 	@make check-env 2>/dev/null || echo "$(RED)Environment not ready$(NC)"

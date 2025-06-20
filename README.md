@@ -78,6 +78,7 @@ Add to your MCP client config (e.g., Claude Desktop):
 
 - **`terraform_explain`**: Parse and explain Terraform plans in plain English
 - **`terraform_parse`**: Parse plans and return structured JSON data
+- **`terraform_explain_best_of_n`**: Generate N explanations and return the best one according to reward function
 
 ### Run Tests
 
@@ -117,7 +118,7 @@ The agent implements a structured protocol where every LLM call receives exactly
   - `plan_small.json` - 3 changes (no multi-turn)
   - `plan_large.json` - 10 changes (triggers multi-turn)
 
-## Scoring System
+## Scoring System & Best-of-N Selection
 
 The reward function awards points based on:
 
@@ -127,3 +128,20 @@ The reward function awards points based on:
 - **10 pts**: Output has ≤ 1 newline
 
 Minimum passing score: 80/100 points.
+
+### Best-of-N Selection
+
+The agent supports Best-of-N selection where multiple responses are generated and the best one is selected according to the reward function:
+
+```python
+from agent import run_agent_best_of_n
+
+# Generate 5 responses and return the best one
+best_response, best_score, all_responses = run_agent_best_of_n(
+    plan_path="fixtures/plan_small.txt",
+    n=5,
+    temperature=0.8  # Higher temperature for variation
+)
+```
+
+This feature is also available through the MCP server as `terraform_explain_best_of_n`.

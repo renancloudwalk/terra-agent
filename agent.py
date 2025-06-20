@@ -1,10 +1,11 @@
 import json
 import sys
-from typing import List
+from typing import List, Tuple
 from openai import OpenAI
 from tools import load_plan
+from reward import score
 
-BOT_PROMPT = "You are a Terraform plan assistant. Explain every change in plain English, as if to someone with zero technical background. If there are more than 5 changes, ask \"Count only or full summary?\""
+BOT_PROMPT = "You are a Terraform plan assistant. Always start your response with 'Summary: N changes' where N is the exact number of changes. If there are more than 5 changes, ask \"Count only or full summary?\" If user says \"Count only\", respond with just 'Summary: N changes' on a single line."
 
 
 def build_context(system: str, tool_output: List[str], history: List[dict], mcp_version="1.0") -> str:
@@ -27,7 +28,7 @@ def build_context(system: str, tool_output: List[str], history: List[dict], mcp_
     return json.dumps(ctx)
 
 
-def run_agent(plan_path: str) -> str:
+def run_agent_single(plan_path: str, user_reply: str = None, temperature: float = 0) -> str:
     """Run the agent with MCP protocol."""
     # Load and bulletize changes
     resource_changes = load_plan(plan_path)
@@ -48,15 +49,16 @@ def run_agent(plan_path: str) -> str:
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "system", "content": context_json}],
-        temperature=0
+        temperature=temperature
     )
     
     assistant_reply = response.choices[0].message.content
     
     # Check if model asks for count only or full summary
     if "Count only or full summary?" in assistant_reply:
-        # Read user input
-        user_reply = input().strip()
+        # Use provided user_reply or read from input
+        if user_reply is None:
+            user_reply = input().strip()
         
         # Append to history
         history.append({"role": "user", "content": user_reply})
@@ -69,12 +71,56 @@ def run_agent(plan_path: str) -> str:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "system", "content": context_json}],
-            temperature=0
+            temperature=temperature
         )
         
         return response.choices[0].message.content
     
     return assistant_reply
+
+
+def run_agent_best_of_n(plan_path: str, n: int = 3, user_reply: str = None, temperature: float = 0.7) -> Tuple[str, float, List[Tuple[str, float]]]:
+    """
+    Run agent N times and return the best response according to the reward function.
+    
+    Args:
+        plan_path: Path to the Terraform plan
+        n: Number of responses to generate
+        user_reply: User reply for multi-turn (None for interactive)
+        temperature: Temperature for API calls
+    
+    Returns:
+        Tuple of (best_response, best_score, all_responses_with_scores)
+    """
+    # Create spec for scoring
+    spec = {
+        "plan": plan_path,
+        "user_reply": user_reply
+    }
+    
+    responses_with_scores = []
+    
+    # Generate N responses
+    for i in range(n):
+        try:
+            response = run_agent_single(plan_path, user_reply, temperature)
+            response_score = score(response, spec)
+            responses_with_scores.append((response, response_score))
+            print(f"Response {i+1}/{n}: Score {response_score}/100")
+        except Exception as e:
+            print(f"Error generating response {i+1}: {e}")
+            responses_with_scores.append((f"Error: {e}", 0.0))
+    
+    # Sort by score (highest first) and return the best
+    responses_with_scores.sort(key=lambda x: x[1], reverse=True)
+    best_response, best_score = responses_with_scores[0]
+    
+    return best_response, best_score, responses_with_scores
+
+
+def run_agent(plan_path: str) -> str:
+    """Legacy wrapper for backward compatibility."""
+    return run_agent_single(plan_path)
 
 
 if __name__ == "__main__":

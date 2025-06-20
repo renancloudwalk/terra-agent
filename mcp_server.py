@@ -13,6 +13,7 @@ import mcp
 from mcp import types
 from mcp.server.stdio import stdio_server
 from tools import parse_terraform_plan_text
+from agent import run_agent_best_of_n
 from agent import build_context, BOT_PROMPT
 from openai import OpenAI
 
@@ -50,6 +51,40 @@ async def list_tools() -> types.ListToolsResult:
                         "plan_text": {
                             "type": "string",
                             "description": "The raw Terraform plan output text to parse"
+                        }
+                    },
+                    "required": ["plan_text"]
+                }
+            ),
+            types.Tool(
+                name="terraform_explain_best_of_n",
+                description="Generate N explanations and return the best one according to reward function",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "plan_text": {
+                            "type": "string",
+                            "description": "The raw Terraform plan output text to analyze"
+                        },
+                        "n": {
+                            "type": "integer",
+                            "description": "Number of responses to generate (default: 3)",
+                            "default": 3,
+                            "minimum": 1,
+                            "maximum": 10
+                        },
+                        "user_preference": {
+                            "type": "string", 
+                            "enum": ["auto", "count_only", "full_summary"],
+                            "description": "Response preference for multi-turn scenarios",
+                            "default": "count_only"
+                        },
+                        "temperature": {
+                            "type": "number",
+                            "description": "Temperature for response generation (default: 0.7)",
+                            "default": 0.7,
+                            "minimum": 0,
+                            "maximum": 2
                         }
                     },
                     "required": ["plan_text"]
@@ -167,6 +202,63 @@ async def call_tool(request: types.CallToolRequest) -> types.CallToolResult:
                 )
             ]
         )
+    
+    elif name == "terraform_explain_best_of_n":
+        # Best-of-N explanation generation
+        plan_text = arguments.get("plan_text", "")
+        n = arguments.get("n", 3)
+        user_preference = arguments.get("user_preference", "count_only")
+        temperature = arguments.get("temperature", 0.7)
+        
+        # Write plan to temporary file for processing
+        import tempfile
+        import os
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            f.write(plan_text)
+            temp_plan_path = f.name
+        
+        try:
+            # Determine user_reply based on preference
+            user_reply = None
+            if user_preference in ["count_only", "auto"]:
+                user_reply = "Count only"
+            
+            # Run Best-of-N
+            best_response, best_score, all_responses = run_agent_best_of_n(
+                plan_path=temp_plan_path,
+                n=n,
+                user_reply=user_reply,
+                temperature=temperature
+            )
+            
+            # Format detailed results
+            results = {
+                "best_response": best_response,
+                "best_score": f"{best_score}/100",
+                "total_attempts": n,
+                "all_responses": [
+                    {
+                        "response": resp,
+                        "score": f"{score}/100"
+                    }
+                    for resp, score in all_responses
+                ]
+            }
+            
+            return types.CallToolResult(
+                content=[
+                    types.TextContent(
+                        type="text",
+                        text=f"Best-of-{n} Result:\n\n{best_response}\n\nScore: {best_score}/100\n\nDetailed Results:\n{json.dumps(results, indent=2)}"
+                    )
+                ]
+            )
+            
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_plan_path):
+                os.unlink(temp_plan_path)
     
     else:
         raise ValueError(f"Unknown tool: {name}")

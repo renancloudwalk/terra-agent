@@ -122,7 +122,6 @@ Add to your MCP client config (e.g., Claude Desktop):
 ### Available MCP Tools
 
 - **`terraform_explain`**: Parse and explain Terraform plans in plain English
-- **`terraform_parse`**: Parse plans and return structured JSON data
 - **`terraform_explain_best_of_n`**: Generate N explanations and return the best one according to reward function
 
 ### Run Tests

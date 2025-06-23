@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from agent import run_agent, build_context, BOT_PROMPT
+from agent import run_agent_single, build_context, BOT_PROMPT
 from reward import score
 
 
@@ -41,7 +41,7 @@ def test_agent_scenarios(prompts_data, spec_name):
             
             # Mock input to prevent actual user input
             with patch('builtins.input'):
-                output = run_agent(spec["plan"])
+                output = run_agent_single(spec["plan"])
     
     elif spec_name == "large_plan_count":
         # Large plan: multi-turn conversation
@@ -60,7 +60,7 @@ def test_agent_scenarios(prompts_data, spec_name):
             
             # Mock input to return the user reply
             with patch('builtins.input', return_value=spec["user_reply"]):
-                output = run_agent(spec["plan"])
+                output = run_agent_single(spec["plan"])
     
     # Score the output
     test_score = score(output, spec)

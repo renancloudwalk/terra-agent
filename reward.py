@@ -7,20 +7,20 @@ def score(output: str, spec: dict) -> float:
     Score the output based on the specification criteria.
     
     Returns a score out of 100 points:
-    - 40 pts if output starts with "Summary: N change"
+    - 40 pts if output starts with "Summary: N change" or "Summary: N changes"
     - 30 pts if the N matches len(load_plan(spec["plan"]))
     - 20 pts if user_reply=="Count only" and no newline in output
     - 10 pts if output.count("\\n") <= 1
     """
     total_score = 0.0
     
-    # 40 pts: Check if output starts with "Summary: N change"
-    if re.match(r"^Summary: \d+ change", output):
+    # 40 pts: Check if output starts with "Summary: N change" or "Summary: N changes"
+    if re.match(r"^Summary: \d+ changes?", output):
         total_score += 40
     
     # 30 pts: Check if the N matches the actual plan length
     try:
-        number_match = re.match(r"^Summary: (\d+) change", output)
+        number_match = re.match(r"^Summary: (\d+) changes?", output)
         if number_match:
             summary_count = int(number_match.group(1))
             actual_count = len(load_plan(spec["plan"]))

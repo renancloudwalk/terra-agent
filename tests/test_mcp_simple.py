@@ -9,7 +9,7 @@ This bypasses the stdio protocol complexity for easier testing.
 import asyncio
 import json
 from mcp import types
-from mcp_server import list_tools, call_tool
+# Note: list_tools and call_tool are now server decorators, not standalone functions
 
 
 def test_mcp_functionality_placeholder():

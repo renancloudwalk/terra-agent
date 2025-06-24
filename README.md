@@ -159,8 +159,8 @@ The agent implements a structured protocol where every LLM call receives exactly
 - `prompts.json` - Test specifications
 - `tests/test_agent.py` - Parametrized pytest suite with MCP tests
 - `fixtures/` - Sample Terraform plan files
-  - `plan_small.json` - 3 changes (no multi-turn)
-  - `plan_large.json` - 10 changes (triggers multi-turn)
+  - `plan_small.txt` - 3 changes (no multi-turn)
+  - `plan_large.txt` - 11 changes (triggers multi-turn)
 
 ## Scoring System & Best-of-N Selection
 

@@ -53,7 +53,7 @@ demo-best-of-n: check-env ## Run Best-of-N selection demo
 
 test-best-of-n: check-env ## Run Best-of-N specific tests
 	@echo "$(GREEN)Running Best-of-N tests...$(NC)"
-	uv run python test_best_of_n.py
+	uv run python tests/test_best_of_n.py
 
 test-single: check-env ## Test single response on small plan
 	@echo "$(GREEN)Testing single response (temp=0)...$(NC)"

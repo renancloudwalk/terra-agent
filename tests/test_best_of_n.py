@@ -5,6 +5,11 @@ Demonstrates how the reward function can select the best output from multiple at
 """
 
 import json
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from agent import run_agent_best_of_n, run_agent_single
 from reward import score
 

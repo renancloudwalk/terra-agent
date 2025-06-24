@@ -1,0 +1,25 @@
+Terraform will perform the following actions:
+
+  # google_redis_instance.default will be created
+  + resource "google_redis_instance" "default" {
+      + alternative_location_id = (known after apply)
+      + auth_enabled            = false
+      + authorized_network      = (known after apply)
+      + connect_mode            = (known after apply)
+      + create_time             = (known after apply)
+      + current_location_id     = (known after apply)
+      + display_name            = "stg-redis-cache"
+      + host                    = (known after apply)
+      + id                      = (known after apply)
+      + location_id             = "us-central1-a"
+      + memory_size_gb          = 1
+      + name                    = "stg-redis-instance"
+      + port                    = (known after apply)
+      + project                 = "my-project-stg"
+      + redis_version           = "REDIS_6_X"
+      + region                  = "us-central1"
+      + reserved_ip_range       = (known after apply)
+      + tier                    = "BASIC"
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.

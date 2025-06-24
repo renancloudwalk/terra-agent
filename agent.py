@@ -9,19 +9,26 @@ BOT_PROMPT = """You are a Terraform plan assistant that explains infrastructure 
 
 Always start your response with 'Summary: N changes' where N is the exact number of changes, then list what is being done.
 
-For each change, simply state what action is being performed:
-- "Creating an EC2 instance (aws_instance.web)"
-- "Deleting an RDS database (aws_db_instance.main)"
-- "Modifying a security group (aws_security_group.web_sg)"
-- "Creating an S3 bucket (aws_s3_bucket.storage)"
+For each change, extract and include the most important details:
+- Resource action (creating/deleting/modifying)
+- Resource type and terraform name
+- Actual resource name/identifier (from the configuration)
+- Environment (prod/stg/dev if visible)
+- Key configuration details (size, region, ports, etc.)
 
-Keep explanations brief and factual. Include the resource type and name from the plan.
+Examples:
+- "Creating Redis instance 'my-stg-redis' (google_redis_instance.default) in us-central1"
+- "Deleting RDS database 'prod-db' (aws_db_instance.main) - t3.micro"
+- "Modifying security group 'web-sg' (aws_security_group.web_sg) - adding port 443"
+- "Creating S3 bucket 'app-storage-prod' (aws_s3_bucket.storage)"
+
+Extract meaningful names and configuration from the plan details, not just the terraform resource names.
 
 If there are more than 5 changes, ask "Count only or full summary?" 
 - If user says "Count only", respond with just 'Summary: N changes' on a single line
-- If user wants full summary, provide the brief action statements above
+- If user wants full summary, provide the detailed action statements above
 
-Be concise and direct - just state what's happening, not why or how."""
+Be concise but informative - include the details that matter for understanding the actual impact."""
 
 
 def build_context(system: str, tool_output: List[str], history: List[dict], mcp_version="1.0") -> str:
@@ -46,13 +53,44 @@ def build_context(system: str, tool_output: List[str], history: List[dict], mcp_
 
 def run_agent_single(plan_path: str, user_reply: str = None, temperature: float = 0) -> str:
     """Run the agent with MCP protocol."""
-    # Load and bulletize changes
+    # Load and bulletize changes with details
     resource_changes = load_plan(plan_path)
     tool_output = []
     for change in resource_changes:
         actions = change.change.actions
         action = actions[0] if actions else "no-op"
-        tool_output.append(f"- {action} {change.address}")
+        
+        # Include basic info
+        line = f"- {action} {change.address}"
+        
+        # Add configuration details if available
+        if hasattr(change.change, 'after') and change.change.after:
+            after = change.change.after
+            details = []
+            
+            # Extract common meaningful fields
+            if isinstance(after, dict):
+                if 'name' in after and after['name']:
+                    details.append(f"name: {after['name']}")
+                if 'display_name' in after and after['display_name']:
+                    details.append(f"display_name: {after['display_name']}")
+                if 'instance_type' in after and after['instance_type']:
+                    details.append(f"type: {after['instance_type']}")
+                if 'memory_size_gb' in after and after['memory_size_gb']:
+                    details.append(f"memory: {after['memory_size_gb']}GB")
+                if 'region' in after and after['region']:
+                    details.append(f"region: {after['region']}")
+                if 'location_id' in after and after['location_id']:
+                    details.append(f"location: {after['location_id']}")
+                if 'tier' in after and after['tier']:
+                    details.append(f"tier: {after['tier']}")
+                if 'redis_version' in after and after['redis_version']:
+                    details.append(f"version: {after['redis_version']}")
+                
+            if details:
+                line += f" ({', '.join(details)})"
+        
+        tool_output.append(line)
     
     # First turn: history = []
     history = []

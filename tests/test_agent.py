@@ -31,8 +31,12 @@ def test_agent_scenarios(prompts_data, spec_name):
     mock_response.choices = [MagicMock()]
     
     if spec_name == "small_plan":
-        # Small plan: direct summary
-        mock_response.choices[0].message.content = "Summary: 3 changes"
+        # Small plan: full explanation
+        mock_response.choices[0].message.content = """Summary: 3 changes
+
+1. Creating a new web server to host your website
+2. Adding security rules to protect your data  
+3. Setting up storage for your files"""
         
         with patch('agent.OpenAI') as mock_openai:
             mock_client = MagicMock()
@@ -92,11 +96,15 @@ def test_build_context():
 
 def test_score_function():
     """Test the scoring function with known inputs."""
-    # Test case 1: Perfect score for small plan
+    # Test case 1: Perfect score for small plan with explanations
     spec = {
         "plan": "fixtures/plan_small.txt"
     }
-    output = "Summary: 3 changes"
+    output = """Summary: 3 changes
+
+1. Creating a new web server to host your website
+2. Adding security rules to protect your data  
+3. Setting up storage for your files"""
     
     test_score = score(output, spec)
     assert test_score >= 80  # Should get full points

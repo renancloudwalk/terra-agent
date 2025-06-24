@@ -39,10 +39,11 @@ def score(output: str, spec: dict) -> float:
         if "\n" in output and len(output.split('\n')) > 2:
             total_score += 20
     
-    # 10 pts: Check for business-friendly language in explanations
-    business_terms = ["website", "server", "database", "security", "storage", "data", 
-                     "business", "customers", "access", "protect", "cost", "online"]
-    if any(term in output.lower() for term in business_terms):
+    # 10 pts: Check for developer-friendly technical language
+    tech_terms = ["ec2", "rds", "s3", "vpc", "security group", "instance", "bucket", 
+                 "database", "server", "application", "port", "traffic", "network", 
+                 "storage", "load balancer", "subnet", "route", "gateway"]
+    if any(term in output.lower() for term in tech_terms):
         total_score += 10
     
     return total_score

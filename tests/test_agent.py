@@ -34,9 +34,9 @@ def test_agent_scenarios(prompts_data, spec_name):
         # Small plan: full explanation
         mock_response.choices[0].message.content = """Summary: 3 changes
 
-1. Creating a new web server to host your website
-2. Adding security rules to protect your data  
-3. Setting up storage for your files"""
+1. Creating an EC2 instance to run the application server
+2. Configuring a security group to control network access
+3. Setting up an S3 bucket for application storage"""
         
         with patch('agent.OpenAI') as mock_openai:
             mock_client = MagicMock()
@@ -102,9 +102,9 @@ def test_score_function():
     }
     output = """Summary: 3 changes
 
-1. Creating a new web server to host your website
-2. Adding security rules to protect your data  
-3. Setting up storage for your files"""
+1. Creating an EC2 instance to run the application server
+2. Configuring a security group to control network access
+3. Setting up an S3 bucket for application storage"""
     
     test_score = score(output, spec)
     assert test_score >= 80  # Should get full points

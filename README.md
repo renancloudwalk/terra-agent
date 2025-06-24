@@ -192,17 +192,12 @@ This feature is also available through the MCP server as `terraform_explain_best
 
 ## Example Output
 
-The agent provides technical explanations suitable for developers:
+The agent provides concise explanations of what's being done:
 
 ```
 Summary: 3 changes
 
-1. Creating an EC2 instance (aws_instance.web): This creates a virtual server 
-   to run your application, providing scalable compute resources in the cloud.
-
-2. Configuring a security group (aws_security_group.web_sg): This acts as a 
-   virtual firewall controlling network access, allowing HTTP traffic on port 80.
-
-3. Setting up an S3 bucket (aws_s3_bucket.storage): This provides scalable 
-   object storage for static assets like images and files.
+1. Creating an EC2 instance (aws_instance.web)
+2. Creating a security group (aws_security_group.web_sg)  
+3. Creating an S3 bucket (aws_s3_bucket.storage)
 ```

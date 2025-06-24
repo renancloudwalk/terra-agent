@@ -1,6 +1,6 @@
 # Terraform Agent MCP Server
 
-A Model Context Protocol (MCP) server that reads Terraform plan text and explains it in plain English for non-technical users. Features intelligent pruning, multi-turn conversations, and real Atlantis integration.
+A Model Context Protocol (MCP) server that reads Terraform plan text and explains it in clear, technical language for developers without deep AWS/cloud infrastructure knowledge. Features intelligent pruning, multi-turn conversations, and real Atlantis integration.
 
 ## Key Features
 
@@ -121,7 +121,7 @@ Add to your MCP client config (e.g., Claude Desktop):
 
 ### Available MCP Tools
 
-- **`terraform_explain`**: Parse and explain Terraform plans in plain English
+- **`terraform_explain`**: Parse and explain Terraform plans with technical details for developers
 - **`terraform_explain_best_of_n`**: Generate N explanations and return the best one according to reward function
 
 ### Run Tests
@@ -189,3 +189,20 @@ best_response, best_score, all_responses = run_agent_best_of_n(
 ```
 
 This feature is also available through the MCP server as `terraform_explain_best_of_n`.
+
+## Example Output
+
+The agent provides technical explanations suitable for developers:
+
+```
+Summary: 3 changes
+
+1. Creating an EC2 instance (aws_instance.web): This creates a virtual server 
+   to run your application, providing scalable compute resources in the cloud.
+
+2. Configuring a security group (aws_security_group.web_sg): This acts as a 
+   virtual firewall controlling network access, allowing HTTP traffic on port 80.
+
+3. Setting up an S3 bucket (aws_s3_bucket.storage): This provides scalable 
+   object storage for static assets like images and files.
+```
